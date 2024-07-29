@@ -1,0 +1,333 @@
+/*
+1. Realizar una vista vAlumnos que obtenga el siguiente resultado 
+*/
+
+CREATE OR ALTER VIEW v_Alumnos
+AS
+SELECT a.id,
+	   a.nombre as 'Nombre Alumno',
+       a.primerApellido,
+	   a.segundoApellido,
+	   a.correo,
+	   a.telefono,
+	   a.curp,
+	   e.nombre as 'Nombre Estado',
+	   ea.Nombre as 'Estatus'
+FROM Alumnos a 
+left join Estados e
+on a.idEstadoOrigen = e.id
+left join EstatusAlumnos ea
+on a.idEstatus = ea.id
+	 
+
+select  * from v_Alumnos
+
+/*
+2. Realizar el procedimiento almacenado consultarEstados el cual obtendrá la 
+siguiente consulta, recibiendo como parámetro el id del registro que se 
+requiere consultar de la tabla Estados. En caso de que el valor sea -1 (menos 
+uno) deberá regresar todos los registros de dicha tabla. 
+*/
+alter proc consultarEstados
+@id int
+as
+begin
+if @id = -1
+begin
+select e.nombre 
+from Estados e
+end
+else
+begin
+select e.nombre
+from Estados e
+where id = @id
+end
+end
+
+exec consultarEstados -1
+
+/*
+3. Realizar el procedimiento almacenado consultarEstatusAlumnos el cual 
+obtendrá la siguiente consulta, recibiendo como parámetro el id del registro 
+que se requiere consultar de la tabla estatusAlumnos. En caso de que el valor 
+sea -1 (menos uno) deberá regresar todos los registros de dicha tabla. 
+*/
+ALTER PROCEDURE consultarEstatusAlumnos
+    @id INT
+AS
+BEGIN
+    IF @id = -1
+    BEGIN
+        SELECT nombre 
+        FROM EstatusAlumnos;
+    END
+    ELSE
+    BEGIN
+        SELECT nombre 
+        FROM EstatusAlumnos 
+        WHERE id = @id;
+    END
+END;
+exec consultarEstatusAlumnos 2
+
+/*
+4. Realizar el procedimiento almacenado consultarAlumnos el cual obtendrá la 
+siguiente consulta, recibiendo como parámetro el id del registro que se 
+requiere consultar de la tabla Alumnos. En caso de que el valor sea -1 (menos 
+uno) deberá regresar todos los registros de dicha tabla. 
+*/
+ALTER PROCEDURE consultarAlumnos
+    @id INT
+AS
+BEGIN
+    IF @id = -1
+    BEGIN
+        SELECT a.id,
+			a.nombre,
+			a.primerApellido,
+			a.segundoApellido,
+			a.correo,
+			a.telefono,
+			a.fechaNacimiento,
+			a.curp,
+			e.nombre as 'Estado',
+			ea.nombre as 'Estatus'
+        FROM Alumnos a
+		left join Estados e
+		on a.idEstadoOrigen = e.id
+		left join EstatusAlumnos ea
+		on a.idEstatus = ea.id
+    END
+    ELSE
+    BEGIN
+        SELECT *
+        FROM Alumnos a 
+        WHERE id = @id;
+    END
+END;
+
+exec consultarAlumnos 10
+
+/*
+5. Realizar el procedimiento almacenado consultarEAlumnos el cual obtendrá la 
+siguiente consulta, recibiendo como parámetro el id del registro que se 
+requiere consultar de la tabla Alumnos. En caso de que el valor sea -1 (menos 
+uno) deberá regresar todos los registros de dicha tabla.
+*/
+
+CREATE PROCEDURE consultarAlumnos2
+    @id INT
+AS
+BEGIN
+    IF @id = -1
+    BEGIN
+        SELECT a.id,
+			a.nombre,
+			a.primerApellido,
+			a.segundoApellido,
+			a.correo,
+			a.telefono,
+			a.fechaNacimiento,
+			a.curp,
+			e.id as 'id Estado',
+			ea.id as 'id Estatus'
+        FROM Alumnos a
+		left join Estados e
+		on a.idEstadoOrigen = e.id
+		left join EstatusAlumnos ea
+		on a.idEstatus = ea.id
+    END
+    ELSE
+    BEGIN
+        SELECT *
+        FROM Alumnos a 
+        WHERE id = @id;
+    END
+END;
+
+exec consultarAlumnos2 8
+
+/*
+6. Realizar el procedimiento almacenado actualizarEstatusAlumnos el cual 
+recibirá como parámetros el id del Alumno al cual se le requiere cambiar el 
+estatus y el valor del nuevo estatus. 
+*/
+alter PROC ActualizarEstatusAlumnos
+@id INT,
+@nuevoEstatus INT
+AS
+BEGIN
+UPDATE Alumnos
+set idEstatus = @nuevoEstatus
+where id = @id
+if @nuevoEstatus >= 9
+begin
+print 'El ID del alumno no existe o está fuera del rango permitido.';
+end
+else
+begin
+print 'Estatus de alumno actualizado correctamente'
+end
+end
+
+exec ActualizarEstatusAlumnos 8,6
+
+/*
+7. Realizar el procedimiento almacenado agregarAlumnos el cual recibirá como 
+parámetros los valores de cada una de las columnas de la tabla de Alumnos 
+con los cuales se insertará el registro a la tabla Alumnos. El procedimiento 
+deberá regresar el id con el que se creo el registro en formato de entero. 
+*/
+alter PROC agregarAlumnos
+@nombre varchar(60),
+@primerApellido varchar(50),
+@segundoApellido varchar(50),
+@correo varchar(50),
+@telefono nchar(10),
+@fechaNacimiento date,
+@curp char(18),
+@sueldoMensual decimal(9,2),
+@idEstadoOrigen smallint,
+@idEstatus smallint
+as
+begin
+declare @idGenerado int;
+INSERT INTO Alumnos (nombre, primerApellido, segundoApellido, correo, telefono,
+fechaNacimiento, curp, sueldoMensual, idEstadoOrigen, idEstatus)
+VALUES (@nombre, @primerApellido, @segundoApellido, @correo, @telefono,
+@fechaNacimiento, @curp, @sueldoMensual, @idEstadoOrigen, @idEstatus);
+
+set @idGenerado = SCOPE_IDENTITY();
+SELECT (@idGenerado)
+end
+
+exec agregarAlumnos 'David','Loquito','Michoacano','david.mich@gmail.com'
+,7471491234,'2000-01-13','OAGA880113HGRCZL09',40000,12,1
+exec agregarAlumnos 'Aldo Ernesto','Ocaso','Guten','aeocaso@gmail.com',7471666666,'1988-02-13','OAGA880113HGRCZL07',50000,11,5
+
+/*
+8. Realizar el procedimiento almacenado actualizarAlumnos el cual recibirá 
+como parámetros los valores de cada una de las columnas de la tabla de 
+Alumnos con los cuales se actualizarán los valores que existen en la tabla 
+Alumnos del registro que corresponda al id enviado como parámetro. El 
+procedimiento deberá regresar la cantidad de registros actualizados.
+*/
+CREATE PROC actualizarAlumnos
+@id smallint,
+@nombre varchar(60),
+@primerApellido varchar(50),
+@segundoApellido varchar(50),
+@correo varchar(50),
+@telefono nchar(10),
+@fechaNacimiento date,
+@curp char(18),
+@sueldoMensual decimal(9,2),
+@idEstadoOrigen smallint,
+@idEstatus smallint
+as
+begin
+
+UPDATE Alumnos
+SET nombre = @nombre,
+primerApellido = @primerApellido,
+segundoApellido = @segundoApellido,
+correo = @correo,
+telefono = @telefono,
+fechaNacimiento = @fechaNacimiento,
+curp = @curp,
+sueldoMensual = @sueldoMensual,
+idEstadoOrigen = @idEstadoOrigen,
+idEstatus = @idEstatus
+where id = @id
+end
+
+exec actualizarAlumnos 22,'Alan','Ocampo','Guzmán','efra.rlz@gmail.com'
+,7471495947,'1988-01-13','OAGA880113HGRCZL07',30000,11,8
+
+/*
+9. Realizar el procedimiento almacenado eliminarAlumnos el cual recibirá como 
+parámetros el valor del id del registro del alumno del que se requiere eliminar. 
+Primeramente se deberán eliminar todos los registros de la Tabla de 
+CursosAlumnos los cuales tengan el id del alumno a eliminar y posteriormente 
+el eliminar al alumno de la Tabla de Alumnos. 
+Esto deberá considerarse como una transacción ya que se trate de actualizar 
+dos tablas relacionadas. 
+En caso de que no se haya eliminado el  registro de la tabla de Alumnos 
+deberá levantar una excepción. 
+*/
+ALTER PROCEDURE EliminarAlumnos
+    @id INT
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Variable para contar las filas eliminadas
+        DECLARE @rowsAffectedCursos INT;
+
+        -- Elimina los registros de CursosAlumnos que están relacionados con el alumno
+        DELETE CA
+        FROM DB_desde_transact.dbo.CursosAlumnos CA
+        WHERE CA.idAlumno = @id;
+
+        -- Obtiene la cantidad de filas afectadas por la eliminación en CursosAlumnos
+        SET @rowsAffectedCursos = @@ROWCOUNT;
+
+        -- Verifica si se eliminaron registros en CursosAlumnos
+        IF @rowsAffectedCursos > 0
+        BEGIN
+            -- Elimina al alumno de la tabla Alumnos
+            DELETE FROM DB_desde_transact.dbo.Alumnos WHERE id = @id;
+            -- No es necesario verificar @@ROWCOUNT aquí porque ya se verificó en CursosAlumnos
+
+            -- Confirma la transacción si se ejecutaron las eliminaciones correctamente
+            COMMIT;
+            PRINT 'Alumno eliminado exitosamente.';
+        END
+        ELSE
+        BEGIN
+            -- Excepción lanzada si no se encontraron cursos asociados
+            DELETE FROM DB_desde_transact.dbo.Alumnos WHERE id = @id;
+			-- confirma transaccion
+			COMMIT
+			PRINT 'Alumno sin cursos eliminado'
+        END
+    END TRY
+    BEGIN CATCH
+        -- En caso de error, realiza un rollback para deshacer los cambios
+        ROLLBACK;
+        PRINT 'Error al intentar eliminar el alumno. Se realizó un rollback.';
+        THROW;
+    END CATCH;
+END;
+
+
+exec EliminarAlumnos 3
+
+/*
+10. Crear el trigger Trigger_EliminarAlumnos el cual se debe ejecutar cuando se 
+elimina un registro de la tabla de Alumnos. Este trigger deberá insertar un 
+registro en la Tabla AlumnosBaja del alumno eliminado. 
+*/
+use DB_desde_transact
+alter TRIGGER Trigger_EliminarAlumnos
+	ON DB_desde_transact.dbo.Alumnos
+	AFTER DELETE
+	AS
+	SET NOCOUNT ON --impide que se muestre en los mensajes la fila afectada 
+	BEGIN
+		INSERT INTO DB_desde_transact.dbo.AlumnosBaja (nombre,
+								 primerApellido,
+								 segundoApellido,
+								 fechaBaja
+								 )
+		SELECT d.nombre,
+			   d.primerApellido,
+			   d.segundoApellido,
+			   GETDATE()
+
+		FROM deleted d;
+	END
+
+

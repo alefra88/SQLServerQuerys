@@ -1,0 +1,61 @@
+-- 1. Obtener el nombre del alumno cuya longitud es la más grande 
+select  nombre,len(nombre) as longitud
+from Alumnos
+where len(nombre) = (select max(len(nombre)) from Alumnos);
+
+-- 2. Mostrar el o los alumnos menos jóvenes 
+
+select nombre, fechaNacimiento from Alumnos
+where year(fechaNacimiento) = (select min(year(fechaNacimiento)) from Alumnos)
+
+-- 3. Obtener una lista de los alumnos que tuvieron la máxima calificación 
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+cc.nombre as 'nombre curso',
+ca.[maxima calificacion],
+c.fechaInicio,
+c.fechaTermino
+from Alumnos a
+inner join (select max(calificacion) as 'maxima calificacion',idAlumno,idCurso from CursosAlumnos group by calificacion,idAlumno,idCurso) ca
+on a.id = ca.idAlumno
+inner join Cursos c
+on ca.idCurso = c.id
+inner join catCurso cc
+on c.idCatCurso = cc.id
+
+
+-- 4. Obtener la siguiente consulta con los datos de cada uno de los cursos 
+select cc.nombre,
+c.fechaInicio,
+c.fechaTermino,
+ca.idCurso,
+ca.tot,
+ca.Maxima,
+ca.Minima,
+ca.promedio
+from Cursos c
+inner join ( select idCurso,
+count(idCurso) as tot,
+max(calificacion) Maxima, 
+min(calificacion) Minima, 
+avg(calificacion) promedio 
+from CursosAlumnos 
+group by idCurso) ca
+on c.id = ca.idCurso
+inner join catCurso cc
+on ca.idCurso = cc.id
+
+
+
+
+/* 5. 
+Obtener una consulta de los alumnos que tienen una calificación igual o menor 
+que el promedio de calificaciones.
+*/
+select a.nombre as 'nombre alumno',
+ca.calificacion
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id= ca.idAlumno
+where ca.calificacion <= (select avg(calificacion) from CursosAlumnos)

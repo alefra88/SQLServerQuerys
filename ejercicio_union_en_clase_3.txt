@@ -1,0 +1,20 @@
+/*1. Obtener una consulta que contenga el Nombre y apellidos, mes y día 
+de nacimiento de todos los alumnos y profesores, ordenado por tipo persona,
+mes y día de nacimiento*/
+select 'Profesor' as tipoPersona,
+nombre,
+primerApellido,
+segundoApellido,
+month(fechaNacimiento) as 'mes nacimiento',
+DAY(fechaNacimiento) as 'dia nacimiento' from Instructores
+union
+select 'Alumno' as tipoPersona,
+nombre,
+primerApellido,
+segundoApellido,
+MONTH(fechaNacimiento) as 'mes nacimiento',
+day(fechaNacimiento) as 'dia nacimiento'
+from Alumnos
+order by tipoPersona,
+[mes nacimiento],
+[dia nacimiento] asc

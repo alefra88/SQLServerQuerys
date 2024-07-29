@@ -1,0 +1,203 @@
+/*
+1. Crear una función Suma que reciba dos números enteros y regrese la suma de 
+ambos números 
+*/
+CREATE FUNCTION sumarNum
+(
+@num int,
+@num2 int
+) 
+
+RETURNS int
+AS
+BEGIN
+declare @sumNum int;
+set @sumNum = @num + @num2
+		RETURN @sumNum
+END
+
+print dbo.sumarNum(1,2)
+
+/*
+2. Crear la función GetGenero la cual reciba como parámetros el curp y regrese el 
+género al que pertenece 
+*/
+alter FUNCTION getGenero
+(
+@curp char(18)
+) 
+RETURNS char(6)
+AS
+BEGIN
+declare @genero char(6);
+set @genero = upper(SUBSTRING(@curp,11,1))
+if @genero = 'm'
+begin
+set @genero = 'Mujer'
+end
+else
+set @genero = 'Hombre'
+        RETURN @genero 
+END
+
+select curp,
+dbo.getGenero(curp) as 'genero' 
+from Alumnos
+
+/*
+3. Crear la función GetFechaNacimiento la cual reciba como parámetros el curp y 
+regrese la fecha de nacimiento. La fecha de nacimiento deberá completarse a 4 
+dígitos, debiéndose determinar si es año dos mil o año mil novecientos 
+*/
+alter FUNCTION getFechaNacimiento
+(
+@curp varchar(18)
+) 
+RETURNS date
+AS
+BEGIN
+declare @fechaNac varchar(6);
+declare @fechaCon date;
+set @fechaNac = SUBSTRING(@curp,5,6)
+set @fechaCon = convert(date, @fechaNac)
+RETURN @fechaCon
+END
+
+
+
+select curp,
+dbo.getFechaNacimiento(curp) as 'fecha nacimiento' 
+from Alumnos
+
+/*
+4. Crear la función GetidEstado la cual reciba como parámetros el curp y regrese el 
+Id Estado con base en la siguiente tabla 
+*/
+alter FUNCTION getIdEstado
+(
+@curp char(18)
+) 
+RETURNS char(2)
+AS
+BEGIN
+declare @idEstado char(2), @id int;
+set @idEstado = SUBSTRING(@curp,12,2)
+if @idEstado = 'AS' set @id = '1'
+if @idEstado = 'BC' set @id = '2'
+if @idEstado = 'BS' set @id = '3'
+if @idEstado = 'CC' set @id = '4'
+if @idEstado = 'CH' set @id = '5'
+if @idEstado = 'CS' set @id = '6'
+if @idEstado = 'CL' set @id = '7'
+if @idEstado = 'CM' set @id = '8'
+if @idEstado = 'DG' set @id = '9'
+if @idEstado = 'GT' set @id = '10'
+if @idEstado = 'GR' set @id = '11'
+if @idEstado = 'HG' set @id = '12'
+if @idEstado = 'JC' set @id = '13'
+if @idEstado = 'MC' set @id = '14'
+if @idEstado = 'MN' set @id = '15'
+if @idEstado = 'MS' set @id = '16'
+if @idEstado = 'NT' set @id = '17'
+if @idEstado = 'NL' set @id = '18'
+if @idEstado = 'OC' set @id = '19'
+if @idEstado = 'PL' set @id = '20'
+if @idEstado = 'QT' set @id = '21'
+if @idEstado = 'QR' set @id = '22'
+if @idEstado = 'SP' set @id = '23'
+if @idEstado = 'SL' set @id = '24'
+if @idEstado = 'SR' set @id = '25'
+if @idEstado = 'TC' set @id = '26'
+if @idEstado = 'TS' set @id = '27'
+if @idEstado = 'TL' set @id = '28'
+if @idEstado = 'VZ' set @id = '29'
+if @idEstado = 'YN' set @id = '30'
+if @idEstado = 'ZS' set @id = '31'
+return @id 
+end
+
+select Estados.nombre, dbo.getIdEstado(curp) as idEstado from Alumnos
+inner join Estados
+on Alumnos.idEstadoOrigen = Estados.id
+
+/*
+5. Realizar una función llamada Calculadora que reciba como parámetros dos 
+enteros y un operador (+,-,*,/,%) regresando el resultado de la operación se 
+deberá cuidar de no hacer división entre cero 
+*/
+
+alter function calculadora
+(
+ @num int,
+ @num2 int,
+ @opera char(1) 
+)
+returns decimal(9,1)
+as
+begin
+declare @resultado decimal(9,1)
+set @resultado = (case @opera
+when '+' then @num + @num2
+when '-' then @num + @num2
+when '*' then @num * @num2
+when '/' then convert(float,@num) / nullif(@num2,0)
+when '%' then @num / nullif(@num2,0)
+end
+)
+return @resultado
+end
+
+print dbo.calculadora(1,2.4,'+')
+
+/*
+6. Realizar una función llamada GetHonorarios que calcule el importe a pagar a un 
+determinado instructor y curso, por lo que la función recibirá como parámetro el id 
+del instructor y el id del curso. 
+*/
+
+create function GetHonorarios
+(
+@idInstructor int,
+@idCurso int
+)
+returns numeric(9,2)
+as
+begin
+declare @honorarios numeric(9,2)
+select @honorarios = (Instructores.cuotaHora * catCurso.horas)
+from Instructores
+inner join CursosInstructores
+on Instructores.id = CursosInstructores.idInstructor
+inner join Cursos
+on CursosInstructores.idCurso = Cursos.id
+inner join catCurso
+on Cursos.idCatCurso = catCurso.id
+where CursosInstructores.idInstructor = @idInstructor
+return @honorarios
+end
+
+select dbo.getHonorarios(3,3) honorarios
+
+/*
+7. Crear la función GetEdad la cual reciba como parámetros la fecha de nacimiento y 
+la fecha a la que se requiere realizar el cálculo de la edad. Los años deberán ser 
+cumplidos, considerando mes y día
+*/
+
+create function GetEdad
+(
+@fechaNa date,
+@fechaCal date
+)
+returns int
+as
+begin
+declare @edad int
+set @edad = datediff(year,
+iif((month(@fechaNa) > month(@fechaCal))
+or(day(@fechaNa)> day(@fechaCal)),
+dateadd(year,1,@fechaNa),@fechaNa),@fechaCal)
+return @edad
+end
+
+select dbo.getEdad('1988-01-12','2000-02-12') as edad

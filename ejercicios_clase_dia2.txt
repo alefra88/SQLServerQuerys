@@ -1,0 +1,114 @@
+-- 1. Función fecha
+select id,
+nombre,
+primerApellido,
+segundoApellido,
+fechaNacimiento,
+getdate() hoy,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+datediff(year,dateadd(month,-5,fechaNacimiento),getdate() ) as edad5Meses
+from Alumnos
+
+-- 2. consulta con nombre y apellidos en mayuscola
+select id,
+UPPER(nombre) nombre,
+UPPER(primerApellido) primerApellido,
+UPPER(segundoApellido) segundoApellido,
+fechaNacimiento,
+getdate() hoy,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+datediff(year,dateadd(month,-5,fechaNacimiento),getdate() ) as edad5Meses
+from Alumnos
+
+
+
+-- 3. La misma consulta pero extrayendo fecha del CURP
+
+select id,
+UPPER(nombre) nombre,
+UPPER(primerApellido) as 'Apellido paterno',
+UPPER(segundoApellido) as 'apellido materno',
+fechaNacimiento,
+getdate() hoy,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+datediff(year,dateadd(month,-5,fechaNacimiento),getdate() ) as edad5Meses,
+convert(date,substring(curp,5,6)) as 'fecha nacimiento curp'
+from Alumnos
+
+-- 4. Realiza una consulta agregando el genero Mujer u hombre
+select id,
+UPPER(nombre) nombre,
+UPPER(primerApellido) as 'apellido paterno',
+UPPER(segundoApellido) as 'apellido materno',
+fechaNacimiento,
+getdate() hoy,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+datediff(year,dateadd(month,-5,fechaNacimiento),getdate() ) as edad5Meses,
+convert(date,substring(curp,5,6)) as 'fecha nacimiento curp',
+iif(substring(curp,11,1)=upper('h'),'Hombre','Mujer') genero
+from Alumnos
+
+-- 5. Realiza la siguiente consulta cambiando gmail por hotmail
+select id,
+nombre nombre,
+primerApellido as 'apellido paterno',
+segundoApellido as 'apellido materno',
+fechaNacimiento,
+correo,
+replace(correo,'gmail.com','hotmail.com') as 'correo gmail'
+from Alumnos
+
+-- 6. Consulta de Alumnos por estado
+select e.nombre, count(a.idEstadoOrigen) as 'total alumnos' from Alumnos a
+inner join Estados e
+on a.idEstadoOrigen = e.id
+group by e.nombre 
+
+-- 7. Consulta de alumnos por estatus
+select ea.nombre, count(a.nombre) as 'total alumnos' from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus=ea.id
+group by ea.nombre 
+
+
+-- 8. Realiza la siguiente consulta resumen de calificaciones
+
+select distinct 'resumenCalificaciones' as 'calificaciones alumnos',
+count(calificacion) tot,
+max(calificacion) Maxima,
+min(calificacion) Minima,
+avg(calificacion) promedio
+from CursosAlumnos
+
+-- 9. Resumen de calificaciones por curso
+select cc.nombre curso,
+c.fechaInicio,
+c.fechaTermino,
+count(ca.calificacion) as calificacion,
+max(ca.calificacion) Maxima,
+min(ca.calificacion) Minima,
+avg(ca.calificacion) Promedio
+from CursosAlumnos ca
+inner join Cursos c
+on ca.idCurso = c.id
+inner join catCurso cc
+on c.idCatCurso=cc.id
+group by cc.nombre,
+c.fechaInicio,
+c.fechaTermino
+
+/* 10. Realiza la siguiente consulta resumen de calificaciones por estado,
+considerando unicamente a los estados	que tienen promedio mayor a 6*/
+
+select e.nombre estado,
+count(ca.calificacion) as calificacion,
+max(ca.calificacion) Maxima,
+min(ca.calificacion) Minima,
+avg(ca.calificacion) Promedio
+from Alumnos a
+inner join Estados e
+on a.idEstadoOrigen= e.id
+inner join CursosAlumnos ca
+on ca.idAlumno = a.id
+group by e.nombre
+having avg(ca.calificacion) > 6

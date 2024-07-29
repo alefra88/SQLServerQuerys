@@ -1,0 +1,9 @@
+select id,
+nombre,
+primerApellido,
+segundoApellido,
+fechaNacimiento,
+getdate() hoy,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+dateadd(MONTH,5,fechaNacimiento) as 'edad en 5 meses'
+from Alumnos

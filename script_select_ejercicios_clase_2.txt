@@ -1,0 +1,115 @@
+-- 1. Realizar consulta de instructores
+
+select top (4) nombre,
+primerApellido as 'Apellido Paterno',
+segundoApellido as 'Apellido Materno',
+rfc,
+cuotaHora as 'Cuota por Hora',
+iif(activo > 0,'activo','inactivo') as Estatus
+from Instructores 
+
+-- 2. realizar consulta de Cursos
+select cc.nombre as 'curso',
+cc.horas,
+c.fechaInicio,
+c.fechaTermino
+from Cursos c inner join catCurso cc
+on c.idCatCurso = cc.id
+
+-- 3. Realizar las consultas de alumnos
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+a.curp,
+e.nombre estado,
+ea.Nombre
+from Alumnos a
+inner join Estados e
+on a.idEstadoOrigen = e.id
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+
+-- 4. Realizar la siguiente consulta de instructores
+select concat(i.nombre,' ',i.primerApellido, ' ' , i.segundoApellido) Instructor,
+i.cuotaHora,
+cc.nombre as 'nombre curso',
+c.fechaInicio,
+c.fechaTermino
+from Instructores i 
+ join CursosInstructores ci
+on i.id = ci.idInstructor
+join Cursos c
+on ci.idCurso=c.id
+join catCurso cc
+on c.idCatCurso=cc.id
+
+
+-- 5. Realiza la siguiente consulta de alumnos
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+e.nombre Estado,
+cc.nombre as 'nombre curso',
+ca.fechaInscripcion,
+c.fechaInicio,
+c.fechaTermino
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id=ca.idAlumno
+inner join Cursos c
+on ca.idCurso = c.id
+inner join catCurso cc
+on c.idCatCurso= cc.id
+inner join Estados e
+on a.idEstadoOrigen= e.id
+
+
+/* 6. Consulta de alumnos,nombre y apellidos,curso,fecha inicial, 
+fecha final,calificacion. Ordenado de la calificacion mas alta a la mas baja*/
+select concat(a.nombre,' ',a.primerApellido, ' ' , a.segundoApellido) nombre,
+cc.nombre curso,
+c.fechaInicio as 'Fecha inicial',
+c.fechaTermino as 'Fecha final',
+ca.calificacion
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id=ca.idAlumno
+inner join catCurso cc
+on a.id=cc.id
+inner join Cursos c
+on ca.idCurso=c.idCatCurso
+order by ca.calificacion desc
+
+-- 7. Realizar la siguiente consulta de los cursos correspondientes con su respectivo prerequisito
+select cc.clave,
+cc.nombre curso,
+cc.horas,
+cc2.idPreRequisito,
+iif(cc2.idPreRequisito!='',cc2.nombre,'sin prerequisito') as Prerequisito
+from catCurso cc
+inner join catcurso cc2
+on cc.id=cc2.idPreRequisito
+
+/* 8. Consulta con los datos de alumno y curso, dentro de ellos la calificacion, obteniendo el nivel alcanzado
+de acuerdo con lo siguiente*/
+select a.nombre,
+a.primerApellido,
+a.segundoApellido nombre,
+cc.nombre curso,
+c.fechaInicio as 'Fecha inicial',
+c.fechaTermino as 'Fecha final',
+ca.calificacion,
+case 
+when ca.calificacion >= 9 then 'Excelente'
+when ca.calificacion >= 7 and ca.calificacion <= 8 then 'bien' 
+when ca.calificacion = 6 then 'suficiente'
+when ca.calificacion < 6 then 'N/A'
+end as nivel
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id= ca.idAlumno
+inner join Cursos c
+on ca.idCurso=c.id
+inner join catCurso cc
+on c.idCatCurso=cc.id
+order by ca.calificacion desc

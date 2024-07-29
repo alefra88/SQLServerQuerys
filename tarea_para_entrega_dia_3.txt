@@ -1,0 +1,171 @@
+-- 1. Alumnos cuyo apellido sea Mendoza
+Select *
+from Alumnos 
+where primerApellido  like '%Mendoza%' or segundoApellido like '%Mendoza%'
+
+-- 2. Alumno cuyo estatus sea en capacitación
+select a.nombre as 'Nombre Alumno',
+ea.Nombre as 'Estatus'
+from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+where ea.Clave = 'CAP'
+
+-- 3. Instructores que sean mayores a 30
+select i.nombre,datediff(year,fechaNacimiento,getdate()) as 'años' from Instructores i
+
+-- 4. Alumnos que esten entre 20 y 25 
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+a.fechaNacimiento,
+datediff(year,a.fechaNacimiento,getdate()) as 'edad'
+from Alumnos a 
+where DATEDIFF(year,a.fechaNacimiento,GETDATE()) between 20 and 25;
+
+/* 5. Alumnos que sea del Estado de “Oaxaca” y su estatus sea “En 
+Capacitación”, o que sean de “Campeche” y que estén en estatus 
+“Prospecto”  */
+select a.nombre as 'Nombre Alumno',
+e.nombre as 'Estado',
+ea.Nombre as 'Estatus'
+from Alumnos a
+inner join Estados e
+on a.idEstadoOrigen = e.id
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+where (e.nombre like '%Oaxaca%' or e.nombre like '%Campeche%') and ea.Clave = 'PTO'
+
+-- 6. Alumnos cuyo correo sea de gmail 
+select * from Alumnos a
+where correo like '%gmail%'
+
+-- 7. Alumnos que cumplen años en el mes de marzo 
+select a.nombre,
+MONTH(fechaNacimiento) as 'mes de cumpleaños'
+from Alumnos a
+where MONTH(fechaNacimiento) = 3
+
+/* 8. Alumnos que cumplen 30 años dentro de 5 años en relación con la fecha 
+actual */
+select nombre,
+datediff(year,fechaNacimiento,getdate()) as 'años',
+datediff(year,dateadd(YEAR,-5,fechaNacimiento),getdate() ) as 'edad en 5 años'
+from Alumnos
+where datediff(year,dateadd(YEAR,-5,fechaNacimiento),getdate() ) = 30
+
+-- 9. Alumnos cuyo nombre exceda 10 caracteres
+select * from Alumnos where LEN(nombre) = 10
+
+-- 10. Alumnos cuyo último carácter del curp sea numérico 
+select *
+from Alumnos
+where SUBSTRING(curp,-1,20) like '%[0,9]%' 
+
+-- 11. Alumnos cuya calificación sea mayor que 8 
+select concat(a.nombre,' ',a.primerApellido, ' ', segundoApellido) as 'nombre alumno',
+ca.calificacion
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id = ca.idAlumno
+where calificacion > 8;
+
+/* 12.  Alumnos que se encuentren en estatus laborando o liberado con un 
+sueldo superior a 15,000 */
+select  * from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+where  (ea.Nombre  like '%laborando%'
+or ea.nombre like '%liberado%' )
+and   a.sueldoMensual > 15000 
+
+select  * from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+where  a.sueldoMensual > 15000 and ea.Nombre  
+like '%laborando%'
+or ea.nombre like '%liberado%' 
+  
+
+/* 13. Alumnos cuyo año de nacimiento esté entre  1990 y 1995  y que su 
+primer apellido empiece con B, C ó Z */
+select * from Alumnos a 
+where YEAR(fechaNacimiento) between 1990 and 1995 and a.primerApellido like '[b,c,r,z,m,g]%'
+
+/* 14. 
+Alumnos cuyo fecha de Nacimiento no coincide con la fecha de nacimiento del 
+curp 
+• Nombre del alumno 
+• Curp 
+• Fecha de Nacimiento 
+*/
+select a.nombre,
+a.curp,
+a.fechaNacimiento,
+CONVERT(date,SUBSTRING(curp,5,6)) as 'fecha curp'
+from Alumnos a
+where convert(date,SUBSTRING(curp,5,6)) != a.fechaNacimiento
+
+
+/* 15.
+Alumnos cuyo primer apellido inicie con ‘A’ y el mes de nacimiento sea abril y 
+que tengan entre 21 y 30 años 
+*/
+select *,
+datediff(year,a.fechaNacimiento,getdate()) as 'edad' 
+from Alumnos a
+where a.primerApellido like '[A]%' 
+and MONTH(fechaNacimiento) = 4 
+and datediff(year,a.fechaNacimiento,getdate()) between 21 and 30;
+
+
+
+/*
+16. Obtener una lista de alumnos que se llaman Luis aunque sea compuesto 
+*/
+select * from Alumnos a where a.nombre = 'Luis'
+
+/*
+17. Obtener una consulta de los cursos que se han impartido en el año de 2021,  
+o nombre del curso 
+o fecha de inicio 
+o fecha final 
+o cantidad de alumnos 
+o  promedio de calificaciones. 
+*/
+select cc.nombre as 'nombre curso',
+c.fechaInicio as 'fecha inicio',
+c.fechaTermino as 'fecha finalizacion',
+sum(ca.idAlumno) as 'total alumnos',
+avg(ca.calificacion) promedio
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id = ca.idAlumno
+inner join Cursos c
+on ca.idCurso = c.id
+inner join catCurso cc
+on c.idCatCurso = cc.id
+where year(c.fechaInicio) = 2021
+group by cc.nombre,c.fechaInicio,c.fechaTermino,ca.idAlumno
+order by cc.nombre desc
+
+/*
+18.
+Realizar la siguiente consulta Resumen de Calificaciones por Estado, 
+considerando únicamente a los alumnos que tienen calificación mayor a 6 
+mostrando únicamente a los estados cuyo total de alumnos (con promedio 
+mayor a 6) sea mayor a 1 
+*/
+select e.nombre as 'nombre estado',
+count(a.id) as 'total alumnos',
+avg(ca.calificacion) promedio
+from Estados e
+inner join Alumnos a
+on e.id = a.idEstadoOrigen
+inner join CursosAlumnos ca
+on a.id = ca.idAlumno
+where ca.calificacion > 6
+group by e.nombre
+having count(a.id)>1
+order by e.nombre
+

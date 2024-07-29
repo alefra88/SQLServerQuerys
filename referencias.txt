@@ -1,0 +1,72 @@
+/*create table Estados(
+id int not null,
+nombre varchar(100) null,
+primary key (id));
+
+create table EstatusAlumnos(
+id smallint not null,
+Clave char(10),
+Nombre varchar(100),
+primary key(id));*/
+
+/*create table catCurso(
+id smallint not null,
+clave varchar(15),
+nombre varchar(50),
+descripcion varchar(100) null,
+horas tinyint,
+idPreRequisito smallint null,
+activo bit,
+primary key(id));*/
+
+alter table Cursos add constraint PK_idCatCurso foreign key (id) references catCurso(id)
+on delete cascade on update cascade
+
+/*create table Alumnos(
+id int not null,
+nombre varchar(60),
+primerApellido varchar(50),
+segundoApellido varchar(50) null,
+correo varchar(80) null,
+telefono nchar(10) null,
+fechaNacimiento date,
+curp char(18) not null,
+sueldo decimal(9,2) null,
+idEstadoOrigen int,
+idEstatus smallint,
+primary key (id));*/
+
+alter table Alumnos add constraint PK_idEstadoOrigen foreign key(id) references Estados(id) on delete cascade on update cascade;
+go
+alter table Alumnos add constraint PK_idEstatus foreign key(id) references EstatusAlumnos(id) on delete cascade on update cascade;
+
+/*create table Instructores(
+id smallint not null,
+nombre varchar(60),
+primerApellido varchar(50),
+segundoApellido varchar(50) null,
+correo varchar(80),
+telefono nchar(10),
+fechaNacimiento date,
+rfc char(13),
+curp char(18),
+cuotaHora decimal(9,2),
+activo bit,
+primary key (id));
+
+create table CursosAlumnos(
+id int not null,
+idCurso smallint,
+idAlumno int,
+fechaInscripcion date,
+fechaBaja date null,
+calificacion tinyint null,
+primary key(id));
+
+create table CursosInstructores(
+id int not null,
+idCurso smallint,
+idInstructor int,
+fechaContratacion date null,
+primary key(id));*/
+

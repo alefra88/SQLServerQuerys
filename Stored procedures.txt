@@ -1,0 +1,127 @@
+
+1. Crear un store procedureCodigoAscii que imprima los caracteres con su respectivo 
+código ascii en decimal. Solo para los caracteres cuyo código sea mayor a 32 
+*/
+alter procedure sp_ascii_char
+
+as
+begin
+declare @codigo int;
+declare @caracter char(5);
+set @codigo = 33;
+while @codigo < 256
+begin
+set @caracter = char(@codigo);
+print  @caracter+'ASCII=> '+ convert(varchar(5),@codigo)
+set @codigo = @codigo + 1
+end
+end
+
+exec sp_ascii_char;
+
+select ascii(1) as codigo
+
+/*
+2. Crear el store procedure Factorial que reciba como parámetro un número entero y 
+que devuelve el factorial calculado en un parámetro de salida  
+*/
+create proc sp_factorial
+
+@numero int,
+@factorial bigint output
+as
+begin
+declare @resultado bigint = 1
+declare @i int = 1
+
+while @i <= @numero
+begin
+set @resultado = @resultado * @i;
+set @i = @i + 1;
+end
+set @factorial = @resultado
+end
+
+--otro sp que llama al primer sp
+create proc sp_factorizador
+@numero int
+as
+begin
+declare @resultado bigint
+
+exec sp_factorial @numero = @numero, @factorial = @resultado output;
+
+select @resultado as Factorial
+end
+
+exec sp_factorizador 5
+
+/*creando tablas*/
+create table saldos
+(
+id int not null,
+nombre varchar(100) not null,
+saldo decimal(9,2) null,
+primary key(id)
+)
+
+create table transacciones
+(
+id int not null,
+idOrigen int not null,
+idDestino int not null,
+monto decimal(9,2) null
+primary key(id)
+)
+
+
+/*
+4. Crear un store procedure “Transacciones” que recibirá como parámetros el id de la 
+cuenta de origen, el id de la cuenta destino y el monto de la transacción. Se 
+deberá crear dentro de una transacción a fin de que los saldos de las cuentas 
+involucradas y la tabla de transacciones quede perfectamente consistente. 
+*/
+CREATE PROCEDURE TransaccionMonetaria
+    @CuentaOrigen INT,
+    @CuentaDestino INT,
+    @Cantidad DECIMAL(18, 2)
+AS
+BEGIN
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        -- Verificar saldo suficiente en la cuenta origen
+        DECLARE @SaldoOrigen DECIMAL(18, 2);
+        SELECT @SaldoOrigen = Saldo FROM Cuentas WHERE ID = @CuentaOrigen;
+
+        IF @SaldoOrigen >= @Cantidad
+        BEGIN
+            -- Restar la cantidad de la cuenta origen
+            UPDATE Cuentas SET Saldo = Saldo - @Cantidad WHERE ID = @CuentaOrigen;
+
+            -- Sumar la cantidad a la cuenta destino
+            UPDATE Cuentas SET Saldo = Saldo + @Cantidad WHERE ID = @CuentaDestino;
+            COMMIT;
+            PRINT 'Transacción completada exitosamente.';
+        END
+        ELSE
+        BEGIN
+            ROLLBACK;
+            PRINT 'Saldo insuficiente en la cuenta origen.';
+        END
+    END TRY
+    BEGIN CATCH
+        ROLLBACK;
+        PRINT 'Error en la transacción. Se ha realizado un rollback.';
+		THROW 51000,'Error al realizar la transferencia', 1;
+    END CATCH;
+END;
+
+
+ create proc SP_TransaccionEntreCuentas
+ @cuentaOrigen int,
+ @cuentaDestino,
+ @cantidad decimal(9,2)
+ as
+ begin
+ exec TransaccionMonetaria @cuentaOrigen, @cuentaDestino, @cantidad;

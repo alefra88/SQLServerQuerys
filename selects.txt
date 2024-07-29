@@ -1,0 +1,23 @@
+select  primerApellido as 'Apellido paterno',
+segundoApellido as 'Apellido materno',
+nombre,
+telefono from Alumnos
+
+select primerApellido as 'apellido paterno',
+segundoApellido as 'apellido materno',
+nombre,
+rfc as 'rfc',
+cuotaHora as 'cuota por hora'
+from Instructores
+
+select clave,
+nombre,
+descripcion,
+horas from catCurso
+
+select top 5 primerApellido as 'Apellido paterno',
+segundoApellido as 'Apellido materno',
+nombre,
+telefono,
+correo,
+fechaNacimiento as 'Fecha nacimiento'  from Alumnos  order by fechaNacimiento desc;

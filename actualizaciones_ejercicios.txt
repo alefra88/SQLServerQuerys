@@ -1,0 +1,192 @@
+
+/*
+1. Actualizar el estatus del Alumnos de los que están en propedéutico a capacitación
+*/
+
+update Alumnos 
+set idEstatus = 3 
+where  idEstatus = 6
+
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+ea.Nombre,
+ea.id,
+ea.Clave
+from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+
+/*
+2. Actualizar el segundo apellido del Alumno a Mayúsculas 
+*/
+update a set a.segundoApellido = upper(a.segundoApellido)
+from Alumnos a
+
+select a.nombre,
+a.primerApellido,
+a.segundoApellido
+from Alumnos a
+
+/*
+1. Actualizar el estatus del Alumnos de los que están en propedéutico a capacitación
+*/
+
+update Alumnos 
+set idEstatus = 3 
+where  idEstatus = 5
+
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+ea.Nombre,
+ea.id,
+ea.Clave
+from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+
+/*
+2. Actualizar el segundo apellido del Alumno a Mayúsculas 
+*/
+update a set a.segundoApellido = UPPER(a.segundoApellido)
+from Alumnos a
+
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+ea.Nombre,
+ea.id,
+ea.Clave
+from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+
+/*
+3. Actualizar el segundo Apellido para que la primera letra sea mayúsculas y el resto 
+minúsculas
+*/
+update a set a.primerApellido = upper(LEFT(a.primerApellido,1))+lower(SUBSTRING(a.primerApellido,2,len(a.primerApellido)))
+from Alumnos a
+
+select a.nombre,
+a.primerApellido,
+a.segundoApellido,
+ea.Nombre,
+ea.id,
+ea.Clave
+from Alumnos a
+inner join EstatusAlumnos ea
+on a.idEstatus = ea.id
+
+/*
+4. Actualizar el número telefónico de los instructores para que los dos primeros 
+dígitos sean 55, en caso de que de acuerdo al curp sean del DF 
+*/
+update i
+set i.telefono = '55' + SUBSTRING(i.telefono,3,LEN(i.telefono))
+from Instructores i
+where curp like '%[__________df]%'
+
+select * from Instructores
+
+/*
+5. Subirles un punto en la calificación a los alumnos de Hidalgo y Oaxaca, y del 
+Curso impartido en junio de 2021. Se deberá considerar que al incrementar el 
+punto no exceda del máximo de la calificación permitida. 
+*/
+
+update ca set calificacion = iif(ca.calificacion < 10, ca.calificacion+1,ca.calificacion)
+from CursosAlumnos ca
+inner join Cursos c
+on ca.idCurso = c.id
+inner join Alumnos a
+on ca.idAlumno = a.id
+inner join Estados e
+on a.idEstadoOrigen = e.id
+where e.nombre like '%Veracruz%' or e.nombre like '%Hidalgo%' 
+and year(c.fechaInicio) = 2024 and month(c.fechaInicio) = 10 
+
+
+select a.nombre nombreAlumno,
+e.nombre nombreEstado,
+ca.fechaInscripcion,
+ca.calificacion
+from Alumnos a
+inner join CursosAlumnos ca
+on a.id = ca.idAlumno
+inner join Estados e
+on a.idEstadoOrigen = e.id
+
+/*
+6. Subirle el 10% de la cuota por hora a los profesores que han impartido el curso de 
+Desarrollador .Net 
+*/
+
+  --update catCurso set nombre = 'Desarrollador.net' where id = 1
+  update ci set ci.idCurso = 1
+  from CursosInstructores ci
+  inner join catCurso cc
+  on ci.idCurso = cc.id
+  where cc.nombre = 'Desarrollador.net' 
+
+update i set i.cuotaHora = i.cuotaHora + (i.cuotaHora * .10)
+from Instructores i
+inner join CursosInstructores ci
+on i.id = ci.idInstructor
+inner join catCurso cc
+on ci.idCurso = cc.id
+where cc.nombre like '%[Desarrollador]%' and ci.idCurso = 1 or ci.idCurso = 3
+
+select i.nombre nombreInstructor,
+i.cuotaHora,
+cc.nombre nombreCurso,
+ci.idCurso,
+ci.idInstructor
+from Instructores i
+inner join Cursos c
+on i.id = c.idCatCurso
+inner join catCurso cc
+on c.idCatCurso = cc.id
+inner join CursosInstructores ci
+on i.id = ci.idInstructor
+
+/*
+7. En la Base de Datos Ejercicios realice lo siguiente: 
+a. Copiar la Tabla de Alumnos de la Base de Datos InstitutoTich a la Tabla 
+AlumnosTodos 
+
+
+d. Actualizar el teléfono de la tabla AlumnosTodos obtenidos desde la taba 
+AlumnosHgo 
+*/
+select * from AlumnosTodos
+drop table AlumnosHgo
+select * from AlumnosHgo
+/*b. Copiar a los alumnos de Hidalgo de la Tabla de Alumnos de la Base de 
+Datos InstitutoTich a la Tabla AlumnosHgo */
+
+select a.nombre,a.correo,a.curp,a.fechaNacimiento,a.id,a.idEstadoOrigen,a.idEstatus,a.primerApellido,a.segundoApellido,a.telefono,a.sueldoMensual
+into DB_desde_transact.dbo.AlumnosHgo
+from Alumnos a
+inner join Estados e
+on a.idEstadoOrigen = e.id
+where e.id = 12
+
+select * from AlumnosHgo
+
+truncate table AlumnosTodos
+
+
+Select * into AlumnosHgo from dbo.Alumnos 
+select telefono from AlumnosHgo
+/*
+c. En la Tabla AlumnosHgo cambiarles el número telefónico inicie con 77, 
+mediante la instrucción update 
+*/
+update ah set ah.telefono = '77'+SUBSTRING(ah.telefono,3,len(ah.telefono))
+from AlumnosHgo ah
+
+update dbo.AlumnosTodos set dbo.alumnosTodos.telefono = dbo.AlumnosHgo.telefono
+
+update AlumnosTodos set AlumnosTodos.telefono = (select telefono from AlumnosHgo where AlumnosTodos.id = AlumnosHgo.id)
