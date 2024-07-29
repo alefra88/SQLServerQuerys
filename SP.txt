@@ -1,0 +1,30 @@
+/*CONSULTAR*/
+ALTER PROCEDURE Consultar
+    @id INT
+AS
+BEGIN
+    IF @id = -1
+    BEGIN
+        SELECT id,
+			nombre,
+			primerApellido,
+			segundoApellido,
+			correo,
+			telefono,
+			fechaNacimiento,
+			curp,
+			sueldoMensual,
+			idEstadoOrigen,
+			idEstatus
+			from Alumnos;
+  
+    END
+    ELSE
+    BEGIN
+        SELECT *
+        FROM Alumnos 
+        WHERE id = @id;
+    END
+END;
+
+
